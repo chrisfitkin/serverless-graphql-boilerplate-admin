@@ -1,19 +1,48 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+// in App.js
+import React, { Component } from "react";
+import { Admin, Resource, Delete } from "react-admin";
+import buildGraphQLProvider from "./lib/ra-data-graphql-simple";
+
+import posts from "./resources/posts";
+
+const introspectionOptions = {
+  include: ["Post"]
+};
 
 class App extends Component {
+  constructor() {
+    super();
+    this.state = { dataProvider: null };
+  }
+  componentDidMount() {
+    buildGraphQLProvider({
+      clientOptions: {
+        uri: "http://localhost:3000/graphql"
+      },
+      introspection: introspectionOptions
+    }).then(dataProvider => {
+      this.setState({ dataProvider });
+    });
+  }
+
   render() {
+    const { dataProvider } = this.state;
+
+    if (!dataProvider) {
+      return <div>Loading...</div>;
+    }
+
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-      </div>
+      <Admin dataProvider={dataProvider}>
+        <Resource
+          name="Post"
+          // list={posts.PostList}
+          // edit={PostEdit}
+          // create={PostCreate}
+          {...posts}
+          remove={Delete}
+        />
+      </Admin>
     );
   }
 }
